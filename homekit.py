@@ -60,8 +60,7 @@ if __name__ == "__main__":
     driver = AccessoryDriver(
         address="0.0.0.0",
         port=int(os.environ.get("PORT", 51826)),
-        persist_file="./home.state",
-        advertised_address="192.168.0.136",
+        persist_file="./home.state"
     )
     driver.add_accessory(accessory=DoorLockAccessory(driver, "도어락"))
     signal.signal(signal.SIGTERM, driver.signal_handler)
