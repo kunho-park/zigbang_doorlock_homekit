@@ -1,0 +1,16 @@
+# docker-compose.yml
+version: '3'
+
+services:
+  app:
+    build: .
+    network_mode: host
+    volumes:
+      - .:/app
+    ports:
+      - "51826:51826"
+    environment:
+      - ID=id
+      - PASSWORD=password
+      - PORT=51826
+      - PYTHONUNBUFFERED=1
