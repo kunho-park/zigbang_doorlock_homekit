@@ -62,19 +62,25 @@ class Doorlock:
         headers: dict = {},
         retry: int = 0,
     ):
-        headers = self.update_header(headers)
+        if retry == 3:
+            return
+        try:
+            headers = self.update_header(headers)
 
-        get = self.session.get(url, headers=headers)
+            get = self.session.get(url, headers=headers)
 
-        if (
-            get.status_code == 401
-            and self.login_id != None
-            and self.password != None
-            and retry == 0
-        ):
+            if (
+                get.status_code == 401
+                and self.login_id != None
+                and self.password != None
+                and retry == 0
+            ):
+                self.login()
+                return self.get(url, headers, retry + 1)
+            return get
+        except:
             self.login()
             return self.get(url, headers, retry + 1)
-        return get
 
     def put(
         self,
@@ -83,21 +89,27 @@ class Doorlock:
         headers: dict = {},
         retry: int = 0,
     ):
-        headers = self.update_header(headers)
+        if retry == 3:
+            return
+        try:
+            headers = self.update_header(headers)
 
-        json.update({"hashData": sha512("".join([str(i) for i in json.values()]))})
+            json.update({"hashData": sha512("".join([str(i) for i in json.values()]))})
 
-        put = self.session.put(url, json=json, headers=headers)
+            put = self.session.put(url, json=json, headers=headers)
 
-        if (
-            put.status_code == 401
-            and self.login_id != None
-            and self.password != None
-            and retry == 0
-        ):
+            if (
+                put.status_code == 401
+                and self.login_id != None
+                and self.password != None
+                and retry == 0
+            ):
+                self.login()
+                return self.put(url, json, headers, retry + 1)
+            return put
+        except:
             self.login()
             return self.put(url, json, headers, retry + 1)
-        return put
 
     @property
     def create_date(self):
@@ -169,6 +181,20 @@ class Doorlock:
         if response.status_code == 200:
             return response.json()
         raise Exception("Log Error")
+
+    def get_status(self, index: int = 0):
+        url = f"https://iot.samsung-ihp.com:8088/openhome/v20/doorlockctrl/membersdoorlocklist?createDate={self.create_date}&favoriteYn=A&hashData=&memberId={self.member_id}"
+
+        headers = {
+            "Accept-Encoding": "gzip, deflate, br",
+            "Content-Type": "application/json",
+            "acceptLanguage": "ko_KR",
+        }
+
+        response = self.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.json()["doorlockVOList"][index]["doorlockStatusVO"]
+        return
 
     def open_door(
         self,

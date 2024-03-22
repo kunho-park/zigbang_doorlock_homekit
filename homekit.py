@@ -48,8 +48,7 @@ class DoorLockAccessory(Accessory):
     def run(self):
         if datetime.now() < self.block_timer:
             return
-        logs = doorlock.get_log(target["deviceId"])
-        status = logs["historyVOList"][0]["msgText"].endswith("잠겼습니다")
+        status = doorlock.get_status(0)["locked"]
 
         if status != self.char_lock_current_state.get_value():
             self.char_lock_target_state.set_value(status)
@@ -61,7 +60,6 @@ if __name__ == "__main__":
         address="0.0.0.0",
         port=int(os.environ.get("PORT", 51826)),
         persist_file="./home.state",
-        advertised_address="192.168.0.136",
     )
     driver.add_accessory(accessory=DoorLockAccessory(driver, "도어락"))
     signal.signal(signal.SIGTERM, driver.signal_handler)
